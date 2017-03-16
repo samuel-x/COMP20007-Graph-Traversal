@@ -6,7 +6,7 @@
 
 #include "traverse.h"
 
-void travel_bfs(Graph* graph, int current_id, int* seen, int size);
+int travel_bfs(Graph* graph, int current_id, int* seen, int size);
 
 void print_dfs(Graph* graph, int source_id) {
 	int *seen;
@@ -135,7 +135,7 @@ void shortest_path(Graph* graph, int source_id, int destination_id) {
 }
 
 // helper function for part 2
-void travel_bfs(Graph* graph, int current_id, int* seen, int size) {
+int travel_bfs(Graph* graph, int current_id, int* seen, int size) {
 	int i, flag = 0; //edges=0;
 	Edge* ptr = graph->vertices[current_id]->first_edge;
 	while (ptr->next_edge != NULL) {
@@ -159,7 +159,7 @@ void travel_bfs(Graph* graph, int current_id, int* seen, int size) {
 	}
 	ptr = graph->vertices[ptr->u]->first_edge;
 	if (ptr->next_edge = NULL) {
-		return;
+		return 0;
 	}
 	else {
 		travel_bfs(graph, graph->vertices[ptr->v], seen, size);
