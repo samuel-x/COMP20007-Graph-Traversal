@@ -6,6 +6,8 @@
 
 #include "traverse.h"
 
+void travel_bfs(Graph* graph, int current_id, int* seen, int size);
+
 void print_dfs(Graph* graph, int source_id) {
 	int *seen;
 	int limit = graph->n;
@@ -54,36 +56,15 @@ void print_dfs(Graph* graph, int source_id) {
 }
 
 void print_bfs(Graph* graph, int source_id) {
+	//redo with recursion
 	int *seen;
-	int limit = graph->n;
+	int limit = graph->maxn;
+	int flag = 0;
 	int size = 0;
-	int edges = 0;
-	int i, j, save, flag = 0;
 	seen = malloc(limit*sizeof(int));
-	memset(seen, 0, sizeof(int));
-	Vertex *current_pos = graph->vertices[source_id];
-	Edge *ptr = current_pos->first_edge;
-	Vertex *prev_pos = graph->vertices[source_id];
-	Edge *prev_ptr = current_pos->first_edge;
-	// Iterate until all all vertexes have been seen
-	seen[size] = source_id;
-	size++;
-
-	for (i=0; i<limit; i++) {
-		// iterate through all edges for current point
-		while(ptr->next_edge != NULL) {
-			// count edges
-			edges++;
-			// check if edge has already been to
-			
-		}
-	}
-
-
-	for (i=0; i<size; i++) {
-		printf("%s\n", graph->vertices[seen[i]]->label);
-	}
+	travel_bfs(graph, source_id, seen, size);
 }
+
 
 void detailed_path(Graph* graph, int source_id, int destination_id) {
 	int *seen;
@@ -151,4 +132,36 @@ void all_paths(Graph* graph, int source_id, int destination_id) {
 
 void shortest_path(Graph* graph, int source_id, int destination_id) {
 	printf("not yet implemented: put code for part 5 here\n");
+}
+
+// helper function for part 2
+void travel_bfs(Graph* graph, int current_id, int* seen, int size) {
+	int i, flag = 0; //edges=0;
+	Edge* ptr = graph->vertices[current_id]->first_edge;
+	while (ptr->next_edge != NULL) {
+		for (i=0; i<size; i++) {
+			if (ptr->v == seen[i]) {
+				flag = 1;
+			}
+		}
+		if (flag == 1){
+			ptr = ptr->next_edge;
+		}
+		else {
+			//edges++;
+			seen[size] = ptr->v;
+			size++;
+			ptr->next_edge;
+			printf("%s\n", graph->vertices[ptr->v]->label);
+			printf("%d\n", size);
+		}	
+		flag = 0;
+	}
+	ptr = graph->vertices[ptr->u]->first_edge;
+	if (ptr->next_edge = NULL) {
+		return;
+	}
+	else {
+		travel_bfs(graph, graph->vertices[ptr->v], seen, size);
+	}
 }
