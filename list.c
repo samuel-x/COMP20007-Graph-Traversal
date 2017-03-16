@@ -79,37 +79,17 @@ Node *new_node() {
 void free_node(Node *node) {
 	free(node);
 }
-/*
-// add an element to the front of a list
-// this operation is O(1)
-void list_add_start(List *list, int data) {
-	assert(list != NULL);
-
-	// create and initialise a new list node
-	Node *node = new_node();
-	node->data = data;
-	node->next = list->head; // next will be the old first node (may be null)
-
-	// place it at the start of the list
-	list->head = node;
-
-	// if list was empty, this new node is also the last node now
-	if(list->size == 0) {
-		list->tail = node;
-	}
-
-	// and we need to keep size updated!
-	list->size++;
-}*/
 
 // add an element to the back of a list
 // this operation is O(1)
-void list_add_end(List *list, int data) {
+void list_add_end(List *list, int data, int seen, char* label) {
 	assert(list != NULL);
 	
 	// we'll need a new list node to store this data
 	Node *node = new_node();
-	node->data = data;
+	node->id = data;
+	node->seen = seen;
+	strcpy(node->label, label);
 	node->next = NULL; // as the last node, there's no next node
 
 	if(list->size == 0) {
@@ -126,75 +106,7 @@ void list_add_end(List *list, int data) {
 	// and keep size updated too
 	list->size++;
 }
-/*
-// remove and return the front data element from a list
-// this operation is O(1)
-// error if the list is empty (so first ensure list_size() > 0)
-int list_remove_start(List *list) {
-	assert(list != NULL);
-	assert(list->size > 0);
-	
-	// we'll need to save the data to return it
-	Node *start_node = list->head;
-	int data = start_node->data;
-	
-	// then replace the head with its next node (may be null)
-	list->head = list->head->next;
 
-	// if this was the last node in the list, the tail also needs to be cleared
-	if(list->size == 1) {
-		list->tail = NULL;
-	}
-
-	// the list is now one node smaller
-	list->size--;
-
-	// and we're finished with the node holding this data
-	free_node(start_node);
-
-	// done!
-	return data;
-}
-
-// remove and return the final data element in a list
-// this operation is O(n), where n is the number of elements in the list
-// error if the list is empty (so first ensure list_size() > 0)
-int list_remove_end(List *list) {
-	assert(list != NULL);
-	assert(list->size > 0);
-	
-	// we'll need to save the data to return it
-	Node *end_node = list->tail;
-	int data = end_node->data;
-	
-	// then replace the tail with the second-last node (may be null)
-	// (to find this replacement, we'll need to walk the list --- the O(n) bit
-	Node *node = list->head;
-	Node *prev = NULL;
-	while (node->next) {
-		prev = node;
-		node = node->next;
-	}
-	list->tail = prev;
-	
-	if(list->size == 1) {
-		// if we're removing the last node, the head also needs clearing
-		list->head = NULL;
-	} else {
-		// otherwise, the second-last node needs to drop the removed last node
-		prev->next = NULL;
-	}
-
-	// the list just got one element shorter
-	list->size--;
-
-	// we're finished with the list node holding this data
-	free_node(end_node);
-
-	// done!
-	return data;
-}
-*/
 // return the number of elements contained in a list
 int list_size(List *list) {
 	assert(list != NULL);
