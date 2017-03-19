@@ -5,8 +5,14 @@
 #include <stdlib.h>
 
 #include "traverse.h"
+#include "list.h"
+#include "list.c"
+//typedef struct node Node;
+
+//typedef struct list List;
 
 int travel_bfs(Graph* graph, int current_id, int* seen, int size);
+int all_path_traverse(Graph* graph, int source_id, int destination_id, List* list);
 
 void print_dfs(Graph* graph, int source_id) {
 	int *seen;
@@ -62,7 +68,7 @@ void print_bfs(Graph* graph, int source_id) {
 	int flag = 0;
 	int size = 0;
 	seen = malloc(limit*sizeof(int));
-	travel_bfs(graph, source_id, seen, size);
+	//travel_bfs(graph, source_id, seen, size);
 }
 
 
@@ -127,13 +133,15 @@ void detailed_path(Graph* graph, int source_id, int destination_id) {
 }
 
 void all_paths(Graph* graph, int source_id, int destination_id) {
-	printf("not yet implemented: put code for part 4 here\n");
+	int limit = graph->n;
+	List *list = new_list(limit);
+	all_path_traverse(graph, source_id, destination_id, list);
 }
 
 void shortest_path(Graph* graph, int source_id, int destination_id) {
 	printf("not yet implemented: put code for part 5 here\n");
 }
-
+/*
 // helper function for part 2
 int travel_bfs(Graph* graph, int current_id, int* seen, int size) {
 	int i, flag = 0; //edges=0;
@@ -164,4 +172,66 @@ int travel_bfs(Graph* graph, int current_id, int* seen, int size) {
 	else {
 		travel_bfs(graph, graph->vertices[ptr->v], seen, size);
 	}
+}
+*/
+int all_path_traverse(Graph* graph, int source_id, int destination_id, List* list){
+	int limit = graph->n;
+	int cumulative = 0;
+	int i, j;
+	Vertex *current_pos = graph->vertices[source_id];
+	Edge *ptr = current_pos->first_edge;
+	int save = -1;
+	int save_w = 0;
+	int exit_flag = 0;
+	int flag;
+	// Iterate until all all vertexes have been seen
+	for (i=0; (i<limit) && (exit_flag != 1); i++) {
+		// check if arrived in destination. If so, continue final loop to calculate the total distance.
+		if (current_pos->first_edge->u == graph->vertices[destination_id]->first_edge->u) {
+			exit_flag = 1;
+		}
+		// Iterate through edges and check if they have been visited.
+		while(ptr->next_edge != NULL && save == -1){
+			flag = 0;
+			if (check(ptr->next_edge, list, i) == 1) {
+				flag = 1;
+				continue;
+			}
+			if (flag == 1) {
+				ptr = ptr->next_edge;
+			}
+			else {
+				save = ptr->v;
+				break;
+			}
+		}
+		// If all of the edges have already been travelled to, then just go to the last village.
+		if (flag == 1) {
+			save = ptr->v;
+		}
+		// print to stdout
+		printf("%s ", current_pos->label);
+		// Add up distance travelled
+		// Add visited village to list of villages visited.
+		list_add_end(list, current_pos->first_edge->u, 1, current_pos->label);
+		//go to the next vertex
+		current_pos = graph->vertices[save];
+		//reset the pointer to the first edge
+		ptr = current_pos->first_edge;
+		// reset the condition
+		save = -1;
+	}
+	printf("\n");
+	return 0;
+}
+
+int check(int pos_id, List* list, int position) {
+	Node *nodeptr = list->head;
+	int i = 0;
+	while(nodeptr->next != NULL && i < position) {
+		if (pos_id == nodeptr->id) {
+			return 1;
+		}
+	}
+	return 0;
 }
