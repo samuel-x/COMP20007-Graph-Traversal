@@ -15,20 +15,57 @@ int travel_bfs(Graph* graph, int current_id, int* seen, int size);
 int all_path_traverse(Graph* graph, int source_id, int destination_id, List* list);
 
 void print_dfs(Graph* graph, int source_id) {
-	int *seen;
 	int limit = graph->n;
-	int size = 0;
-	int i, j;
-	seen = malloc(limit*sizeof(int));
-	memset(seen, 0, sizeof(int));
+	List *list = new_list();
 	Vertex *current_pos = graph->vertices[source_id];
 	Edge *ptr = current_pos->first_edge;
-	int save = -1;
-	int flag;
+	int exit_flag = 0;
+	int added_id = -1;
+	Node *nodeptr;
+
+
+	while (exit_flag != 1) {
+		while (ptr != NULL) {
+			if (list_is_empty(list) == 1) {
+				list_add_end(list, ptr->u, 1, graph->vertices[ptr->u]->label);
+				nodeptr = list->head;
+			}
+			else {
+				if (check_list(list, ptr) == 1) {
+					list_add_end(list, ptr->v, 1, graph->vertices[ptr->v]->label);
+					added_id = ptr->v;
+					break;
+				}
+				else {
+					ptr = ptr->next_edge;
+				}
+			}
+		}
+		if (added_id == -1) {
+			list_add_end(list, ptr->v, 1, graph->vertices[ptr->v]->label);
+			added_id = ptr->v;
+		}
+		current_pos = graph->vertices[added_id];
+		ptr = current_pos->first_edge;
+		
+		nodeptr = nodeptr->next;
+		added_id = -1;
+
+		if (list->size == limit) {
+			exit_flag = 1;
+		}
+	}
+	nodeptr = list->head;
+	while(nodeptr != NULL) {
+		printf("%s\n", nodeptr->label);
+		nodeptr = nodeptr->next;
+	}
+	free_list(list);
+}
 	// Iterate until all all vertexes have been seen
+	/*
 	for (i=0; i<limit; i++) {
-		while(ptr->next_edge != NULL && save == -1){
-			//printf("You are in: %d:%s\t\t\tchecking %d:%s.\t\tDistance: %d\n", ptr->u, current_pos->label, ptr->v, graph->vertices[ptr->v]->label, ptr->weight);
+		while(ptr != NULL && save == -1){
 			flag = 0;
 			for (j=0; j<size; j++) {
 			// iterate through villages visited and check if they've been visited
@@ -60,7 +97,7 @@ void print_dfs(Graph* graph, int source_id) {
 		//printf("You are now in: %s\n", current_pos->label);
 	}
 }
-
+*/
 void print_bfs(Graph* graph, int source_id) {
 	//redo with recursion
 	int limit = graph->maxn;
@@ -68,19 +105,26 @@ void print_bfs(Graph* graph, int source_id) {
 	Vertex *current_pos = graph->vertices[source_id];
 	Edge *ptr = current_pos->first_edge;
 	int exit_flag = 0;
-	printf("%s\n", current_pos->label);
-	list_add_end(list, ptr->u, 1, graph->vertices[ptr->v]->label);
-	Node *nodeptr = list->head;
+	//printf("%s\n", current_pos->label);
+	//list_add_end(list, ptr->u, 1, graph->vertices[ptr->v]->label);
+	//Node *nodeptr = list->head;
+	Node *nodeptr;
 	while (exit_flag != 1) {
 		while (ptr != NULL) {
-			if (check_list(list, ptr) == 1) {
-				list_add_end(list, ptr->v, 0, graph->vertices[ptr->v]->label);
-				//printf("Added to List!\n");
-				printf("%s\n", graph->vertices[ptr->v]->label);
-				ptr = ptr->next_edge;
+			if (list_is_empty(list) == 1) {
+				list_add_end(list, ptr->u, 1, graph->vertices[ptr->u]->label);
+				nodeptr = list->head;
 			}
 			else {
-				ptr = ptr->next_edge;
+				if (check_list(list, ptr) == 1) {
+					list_add_end(list, ptr->v, 0, graph->vertices[ptr->v]->label);
+					//printf("Added to List!\n");
+					//printf("%s\n", graph->vertices[ptr->v]->label);
+					ptr = ptr->next_edge;
+				}
+				else {
+					ptr = ptr->next_edge;
+				}
 			}
 		}
 		if (nodeptr->visited == 0) {
@@ -96,6 +140,12 @@ void print_bfs(Graph* graph, int source_id) {
 			exit_flag = 1;
 		}
 	}
+	nodeptr = list->head;
+	while(nodeptr != NULL) {
+		printf("%s\n", nodeptr->label);
+		nodeptr = nodeptr->next;
+	}
+	free_list(list);
 	//travel_bfs(graph, source_id, seen, size);
 }
 
