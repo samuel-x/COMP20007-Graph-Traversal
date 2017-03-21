@@ -6,11 +6,11 @@
 
 #include "traverse.h"
 #include "list.h"
-#include "list.c"
 //typedef struct node Node;
 
 //typedef struct list List;
 
+int check_list(List *list, Edge *ptr);
 int travel_bfs(Graph* graph, int current_id, int* seen, int size);
 int all_path_traverse(Graph* graph, int source_id, int destination_id, List* list);
 
@@ -63,12 +63,53 @@ void print_dfs(Graph* graph, int source_id) {
 
 void print_bfs(Graph* graph, int source_id) {
 	//redo with recursion
-	int *seen;
 	int limit = graph->maxn;
-	int flag = 0;
-	int size = 0;
-	seen = malloc(limit*sizeof(int));
+	List *list = new_list();
+	Vertex *current_pos = graph->vertices[source_id];
+	Edge *ptr = current_pos->first_edge;
+	int exit_flag = 0;
+	printf("%s\n", current_pos->label);
+	list_add_end(list, ptr->u, 1, graph->vertices[ptr->v]->label);
+	Node *nodeptr = list->head;
+	while (exit_flag != 1) {
+		while (ptr != NULL) {
+			if (check_list(list, ptr) == 1) {
+				list_add_end(list, ptr->v, 0, graph->vertices[ptr->v]->label);
+				//printf("Added to List!\n");
+				printf("%s\n", graph->vertices[ptr->v]->label);
+				ptr = ptr->next_edge;
+			}
+			else {
+				ptr = ptr->next_edge;
+			}
+		}
+		if (nodeptr->visited == 0) {
+			current_pos = graph->vertices[nodeptr->id];
+			nodeptr->visited = 1;
+			nodeptr = nodeptr->next;
+		}
+		else {
+			nodeptr = nodeptr->next;
+		}
+		ptr = current_pos->first_edge;
+		if (list->size == limit) {
+			exit_flag = 1;
+		}
+	}
 	//travel_bfs(graph, source_id, seen, size);
+}
+
+int check_list(List *list, Edge *ptr) {
+	Node *nodeptr = list->head;
+	while (nodeptr != NULL) {
+		//printf("Checking %d vs %d\n", nodeptr->id, ptr->v);
+		if (nodeptr->id == ptr->v) {
+			//printf("Match found in list!\n");
+			return 0;
+		}
+		nodeptr = nodeptr->next;
+	}
+	return 1;
 }
 
 
@@ -133,9 +174,9 @@ void detailed_path(Graph* graph, int source_id, int destination_id) {
 }
 
 void all_paths(Graph* graph, int source_id, int destination_id) {
-	int limit = graph->n;
-	List *list = new_list(limit);
-	all_path_traverse(graph, source_id, destination_id, list);
+	//int limit = graph->n;
+	//List *list = new_list(limit);
+	//all_path_traverse(graph, source_id, destination_id, list);
 }
 
 void shortest_path(Graph* graph, int source_id, int destination_id) {
@@ -173,7 +214,9 @@ int travel_bfs(Graph* graph, int current_id, int* seen, int size) {
 		travel_bfs(graph, graph->vertices[ptr->v], seen, size);
 	}
 }
+
 */
+/*
 int all_path_traverse(Graph* graph, int source_id, int destination_id, List* list){
 	int limit = graph->n;
 	int cumulative = 0;
@@ -235,3 +278,4 @@ int check(int pos_id, List* list, int position) {
 	}
 	return 0;
 }
+*/

@@ -7,7 +7,25 @@
 
 #include <stdbool.h>
 
+// a list node points to the next node in the list, and to some data
+
+typedef struct node Node;
+struct node {
+	int id;
+	int seen;
+	int visited;
+	char* label;
+	Node *next;
+};
+
 typedef struct list List;
+struct list {
+	Node *head;
+	Node *tail;
+	int size;
+};
+
+
 
 // create a new list and return a pointer to it
 List *new_list();
@@ -17,7 +35,7 @@ void free_list(List *list);
 
 // add an element to the back of a list
 // this operation is O(1)
-void list_add_end(List *list, int data, int seen, char* label);
+void list_add_end(List *list, int data, int visited, char* label);
 
 // return the number of elements contained in a list
 int list_size(List *list);

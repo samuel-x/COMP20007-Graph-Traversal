@@ -9,25 +9,19 @@
  */
 
 #include <stdlib.h>
+#include <string.h>
 #include <assert.h>
 #include "list.h"
 
-typedef struct node Node;
 
-// a list node points to the next node in the list, and to some data
-struct node {
-	Node *next;
-	int id;
-	int seen;
-	char* label;
-};
+
+
 
 // a list points to its first and last nodes, and stores its size (num. nodes)
-struct list {
-	Node *head;
-	Node *tail;
-	int size;
-};
+
+
+
+
 
 // helper function to create a new node and return its address
 Node *new_node();
@@ -80,15 +74,17 @@ void free_node(Node *node) {
 	free(node);
 }
 
+
 // add an element to the back of a list
 // this operation is O(1)
-void list_add_end(List *list, int data, int seen, char* label) {
+void list_add_end(List *list, int data, int visited, char* label) {
 	assert(list != NULL);
 	
 	// we'll need a new list node to store this data
 	Node *node = new_node();
 	node->id = data;
-	node->seen = seen;
+	node->visited = visited;
+	node->label = malloc(sizeof(label));
 	strcpy(node->label, label);
 	node->next = NULL; // as the last node, there's no next node
 
