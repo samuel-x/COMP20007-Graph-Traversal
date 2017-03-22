@@ -87,14 +87,17 @@ void list_add_end(List *list, int data, int distance, int visited, char* label) 
 	node->distance = distance;
 	node->label = malloc(sizeof(label));
 	strcpy(node->label, label);
+	label[sizeof(label)+1] = '\0';
 	node->next = NULL; // as the last node, there's no next node
 
 	if(list->size == 0) {
 		// if the list was empty, new node is now the first node
 		list->head = node;
+		list->head->prev = NULL;
 	} else {
 		// otherwise, it goes after the current last node
 		list->tail->next = node;
+		node->prev = list->tail;
 	}
 	
 	// place this new node at the end of the list

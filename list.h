@@ -12,11 +12,11 @@
 typedef struct node Node;
 struct node {
 	int id;
-	int seen;
 	int visited;
 	int distance;
 	char* label;
 	Node *next;
+	Node *prev;
 };
 
 typedef struct list List;
