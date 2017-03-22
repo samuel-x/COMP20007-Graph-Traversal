@@ -14,6 +14,7 @@ struct node {
 	int id;
 	int seen;
 	int visited;
+	int distance;
 	char* label;
 	Node *next;
 };
@@ -35,7 +36,7 @@ void free_list(List *list);
 
 // add an element to the back of a list
 // this operation is O(1)
-void list_add_end(List *list, int data, int visited, char* label);
+void list_add_end(List *list, int data, int distance, int visited, char* label);
 
 // return the number of elements contained in a list
 int list_size(List *list);

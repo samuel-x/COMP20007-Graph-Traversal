@@ -27,12 +27,12 @@ void print_dfs(Graph* graph, int source_id) {
 	while (exit_flag != 1) {
 		while (ptr != NULL) {
 			if (list_is_empty(list) == 1) {
-				list_add_end(list, ptr->u, 1, graph->vertices[ptr->u]->label);
+				list_add_end(list, ptr->u, 0, 1, graph->vertices[ptr->u]->label);
 				nodeptr = list->head;
 			}
 			else {
 				if (check_list(list, ptr) == 1) {
-					list_add_end(list, ptr->v, 1, graph->vertices[ptr->v]->label);
+					list_add_end(list, ptr->v, ptr->weight, 1, graph->vertices[ptr->v]->label);
 					added_id = ptr->v;
 					break;
 				}
@@ -42,7 +42,7 @@ void print_dfs(Graph* graph, int source_id) {
 			}
 		}
 		if (added_id == -1) {
-			list_add_end(list, ptr->v, 1, graph->vertices[ptr->v]->label);
+			list_add_end(list, ptr->v, ptr->weight, 1, graph->vertices[ptr->v]->label);
 			added_id = ptr->v;
 		}
 		current_pos = graph->vertices[added_id];
@@ -112,12 +112,12 @@ void print_bfs(Graph* graph, int source_id) {
 	while (exit_flag != 1) {
 		while (ptr != NULL) {
 			if (list_is_empty(list) == 1) {
-				list_add_end(list, ptr->u, 1, graph->vertices[ptr->u]->label);
+				list_add_end(list, ptr->u, 0, 1, graph->vertices[ptr->u]->label);
 				nodeptr = list->head;
 			}
 			else {
 				if (check_list(list, ptr) == 1) {
-					list_add_end(list, ptr->v, 0, graph->vertices[ptr->v]->label);
+					list_add_end(list, ptr->v, ptr->weight, 0, graph->vertices[ptr->v]->label);
 					//printf("Added to List!\n");
 					//printf("%s\n", graph->vertices[ptr->v]->label);
 					ptr = ptr->next_edge;
@@ -164,18 +164,68 @@ int check_list(List *list, Edge *ptr) {
 
 
 void detailed_path(Graph* graph, int source_id, int destination_id) {
-	int *seen;
 	int limit = graph->n;
+	List *list = new_list();
+	Vertex *current_pos = graph->vertices[source_id];
+	Edge *ptr = current_pos->first_edge;
+	int exit_flag = 0;
+	int added_id = -1;
+	int dist_sum = 0;
+	Node *nodeptr;
+
+
+	while (exit_flag != 1) {
+		while (ptr != NULL) {
+			if (list_is_empty(list) == 1) {
+				list_add_end(list, ptr->u, 0, 1, graph->vertices[ptr->u]->label);
+				nodeptr = list->head;
+			}
+			else {
+				if (check_list(list, ptr) == 1) {
+					list_add_end(list, ptr->v, ptr->weight, 1, graph->vertices[ptr->v]->label);
+					added_id = ptr->v;
+					break;
+				}
+				else {
+					ptr = ptr->next_edge;
+				}
+			}
+		}
+		if (added_id == -1) {
+			list_add_end(list, ptr->v, ptr->weight, 1, graph->vertices[ptr->v]->label);
+			added_id = ptr->v;
+		}
+		if (list->size == limit || added_id == destination_id) {
+			exit_flag = 1;
+		}
+		current_pos = graph->vertices[added_id];
+		ptr = current_pos->first_edge;
+		
+		nodeptr = nodeptr->next;
+
+		added_id = -1;
+	}
+	nodeptr = list->head;
+	while(nodeptr != NULL) {
+		dist_sum += nodeptr->distance;
+		printf("%s (%dkm)\n", nodeptr->label, dist_sum);
+		nodeptr = nodeptr->next;
+	}
+	free_list(list);
+}
+/*
+	int *seen;
+    limit = graph->n;
 	int size = 0;
 	int cumulative = 0;
 	int i, j;
 	seen = malloc(limit*sizeof(int));
 	memset(seen, 0, sizeof(int));
-	Vertex *current_pos = graph->vertices[source_id];
-	Edge *ptr = current_pos->first_edge;
+    current_pos = graph->vertices[source_id];
+	ptr = current_pos->first_edge;
 	int save = -1;
 	int save_w = 0;
-	int exit_flag = 0;
+	exit_flag = 0;
 	int flag;
 	// Iterate until all all vertexes have been seen
 	for (i=0; (i<limit) && (exit_flag != 1); i++) {
@@ -222,7 +272,7 @@ void detailed_path(Graph* graph, int source_id, int destination_id) {
 		save = -1;
 	}
 }
-
+*/
 void all_paths(Graph* graph, int source_id, int destination_id) {
 	//int limit = graph->n;
 	//List *list = new_list(limit);

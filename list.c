@@ -77,13 +77,14 @@ void free_node(Node *node) {
 
 // add an element to the back of a list
 // this operation is O(1)
-void list_add_end(List *list, int data, int visited, char* label) {
+void list_add_end(List *list, int data, int distance, int visited, char* label) {
 	assert(list != NULL);
 	
 	// we'll need a new list node to store this data
 	Node *node = new_node();
 	node->id = data;
 	node->visited = visited;
+	node->distance = distance;
 	node->label = malloc(sizeof(label));
 	strcpy(node->label, label);
 	node->next = NULL; // as the last node, there's no next node
