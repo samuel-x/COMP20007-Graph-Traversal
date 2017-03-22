@@ -166,6 +166,7 @@ int check_list(List *list, Edge *ptr) {
 void detailed_path(Graph* graph, int source_id, int destination_id) {
 	int limit = graph->n;
 	List *list = new_list();
+	int size = 0;
 	Vertex *current_pos = graph->vertices[source_id];
 	Edge *ptr = current_pos->first_edge;
 	int exit_flag = 0;
@@ -274,9 +275,52 @@ void detailed_path(Graph* graph, int source_id, int destination_id) {
 }
 */
 void all_paths(Graph* graph, int source_id, int destination_id) {
-	//int limit = graph->n;
-	//List *list = new_list(limit);
-	//all_path_traverse(graph, source_id, destination_id, list);
+	int limit = graph->n;
+	List *list = new_list();
+	Vertex *current_pos = graph->vertices[source_id];
+	Edge *ptr = current_pos->first_edge;
+	int exit_flag = 0;
+	int added_id = -1;
+	Node *nodeptr;
+
+
+	while (exit_flag != 1) {
+		while (ptr != NULL) {
+			if (list_is_empty(list) == 1) {
+				list_add_end(list, ptr->u, 0, 1, graph->vertices[ptr->u]->label);
+				nodeptr = list->head;
+			}
+			else {
+				if (check_list(list, ptr) == 1) {
+					list_add_end(list, ptr->v, ptr->weight, 1, graph->vertices[ptr->v]->label);
+					added_id = ptr->v;
+					break;
+				}
+				else {
+					ptr = ptr->next_edge;
+				}
+			}
+		}
+		if (added_id == -1) {
+			list_add_end(list, ptr->v, ptr->weight, 1, graph->vertices[ptr->v]->label);
+			added_id = ptr->v;
+		}
+		current_pos = graph->vertices[added_id];
+		ptr = current_pos->first_edge;
+		
+		nodeptr = nodeptr->next;
+		added_id = -1;
+
+		if (list->size == limit) {
+			exit_flag = 1;
+		}
+	}
+	nodeptr = list->head;
+	while(nodeptr != NULL) {
+		printf("%s\n", nodeptr->label);
+		nodeptr = nodeptr->next;
+	}
+	free_list(list);
 }
 
 void shortest_path(Graph* graph, int source_id, int destination_id) {
