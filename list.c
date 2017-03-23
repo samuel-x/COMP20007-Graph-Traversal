@@ -23,13 +23,6 @@
 
 
 
-// helper function to create a new node and return its address
-Node *new_node();
-
-// helper function to clear memory of a node (does not free the node's data)
-void free_node(Node *node);
-
-
 /* * * *
  * FUNCTION DEFINITIONS
  */
@@ -41,6 +34,7 @@ List *new_list() {
 	
 	list->head = NULL;
 	list->tail = NULL;
+	//list->next_list = NULL;
 	list->size = 0;
 
 	return list;
@@ -87,7 +81,6 @@ void list_add_end(List *list, int data, int distance, int visited, char* label) 
 	node->distance = distance;
 	node->label = malloc(sizeof(label));
 	strcpy(node->label, label);
-	label[sizeof(label)+1] = '\0';
 	node->next = NULL; // as the last node, there's no next node
 
 	if(list->size == 0) {

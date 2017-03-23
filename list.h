@@ -23,10 +23,15 @@ typedef struct list List;
 struct list {
 	Node *head;
 	Node *tail;
+	Node *next_list;
 	int size;
 };
 
+// helper function to create a new node and return its address
+Node *new_node();
 
+// helper function to clear memory of a node (does not free the node's data)
+void free_node(Node *node);
 
 // create a new list and return a pointer to it
 List *new_list();
