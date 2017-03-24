@@ -17,7 +17,7 @@ void explore_dfs(Graph* graph, List *list, Edge *ptr, int *added_id, int *branch
 void explore_bfs(Graph* graph, List *list, Edge *ptr);
 void explore_dfs_all(Graph* graph, List *list_x, List *list_y, List *path, Edge *ptr, int *added_id, int *branch);
 void print_list(List *list, int detail);
-int check_path(List *list_x, List *list_y, List *path, Edge *ptr);
+int check_path(List **list, List *path, Edge *ptr, int size);
 
 //PART 1
 void print_dfs(Graph* graph, int source_id) {
@@ -172,6 +172,77 @@ void detailed_path(Graph* graph, int source_id, int destination_id) {
 // PART 4
 void all_paths(Graph* graph, int source_id, int destination_id) {
 	int limit = graph->n;
+	List **list;
+	int size = 0;
+	int i = 0;
+	List *path = new_list();
+
+
+	Vertex *current_pos = graph->vertices[source_id];
+	Edge *ptr = current_pos->first_edge;
+	int exit_flag = 0;
+	int branch = 0;
+	int added_id = NO_ID;
+	Node *nodeptr = list[size]->head;
+	while(exit_flag != TRUE) {
+		while (ptr != NULL) {
+			if (check_path(list, path, ptr, size) == TRUE) {
+				if (added_id != NO_ID) {
+					branch = 0;
+				}
+				printf("%s is valid\n", graph->vertices[ptr->v]->label);
+				list_add_end(path, ptr->v, ptr->weight, FALSE, graph->vertices[ptr->v]->label);
+				added_id = ptr->v;
+			}
+			else {
+				ptr=ptr->next_edge;
+			}
+		}
+		if (added_id == NO_ID) {
+			nodeptr = list[size]->head;
+			for (i = 0; i<(list[size]->size - branch)-1; i++) {
+				nodeptr = nodeptr->next;
+			}
+			added_id = nodeptr->id;
+			branch = 0;
+		}	
+		// Move pointer to next vertex.
+		current_pos = graph->vertices[added_id];
+		ptr = current_pos->first_edge;
+		
+		nodeptr = nodeptr->next;
+		added_id = NO_ID;
+		branch++;
+		
+		// If the same amount of villages as in the graph have been travelled to, then exit successfully.
+		if (list[size]->size >= limit || branch >= limit) {
+			exit_flag = TRUE;
+		}
+		print_list(list[size], FALSE);
+	}
+
+}
+
+int check_path(List **list, List *path, Edge *ptr, int size){
+	int i;
+	int valid = 1;
+	for (i = 0; i<size; i++){
+		Node *nodeptr = list[i]->head;
+		Node *pathptr = path->head;
+		while(nodeptr != list[i]->tail) {
+			if (nodeptr->id == pathptr->id) {
+				valid = 0;
+			}
+		}
+		if (valid == 0) {
+			break;
+		}
+	}
+	return valid;
+}
+
+/*
+	int limit = graph->n;
 	List *list_x = new_list();
 	List *list_y = new_list();
 	List *path = new_list();
@@ -193,6 +264,7 @@ void all_paths(Graph* graph, int source_id, int destination_id) {
 	nodeptr = list_x->head;
 
 	while (exit_flag != TRUE) {
+		//printf("currently at: %s\n", current_pos->label);
 		explore_dfs_all(graph, list_x, list_y, path, ptr, &added_id, &branch);
 		if (added_id == NO_ID) {
 			pathptr = path->head;
@@ -207,10 +279,10 @@ void all_paths(Graph* graph, int source_id, int destination_id) {
 			printf("\n");
 			current_pos = graph->vertices[source_id];
 			ptr = current_pos->first_edge;
-			List *path = new_list();
-			list_add_end(path, ptr->u, FALSE, TRUE, graph->vertices[ptr->u]->label);
+			path = new_list();
+			//list_add_end(path, ptr->u, FALSE, TRUE, graph->vertices[ptr->u]->label);
 			list_add_end(list_y, ptr->u, FALSE, TRUE, graph->vertices[ptr->u]->label);
-			list_y->tail = path->head;
+			path->head = list_y->tail;
 			list_x->next_list = list_y->tail;
 			pathptr = path->head;
 			//printf("%s", pathptr->label);
@@ -232,6 +304,8 @@ void all_paths(Graph* graph, int source_id, int destination_id) {
 	//print_list(list, TRUE);
 	//free_list(list);
 }
+*/
+/*
 
 void explore_dfs_all(Graph* graph, List *list_x, List *list_y, List *path, Edge *ptr, int *added_id, int *branch) {
 	// check all edges
@@ -255,7 +329,7 @@ void explore_dfs_all(Graph* graph, List *list_x, List *list_y, List *path, Edge 
 		}
 	}
 }
-
+*/
 void shortest_path(Graph* graph, int source_id, int destination_id) {
 	printf("not yet implemented: put code for part 5 here\n");
 }
@@ -292,22 +366,23 @@ int check_list(List *list, Edge *ptr) {
 	}
 	return TRUE;
 }
-
+/*
 int check_path(List *list_x, List *list_y, List *path, Edge *ptr) {
-	Node *nodeptr = list_x->head;
+	Node *nodeptr_x = list_x->head;
+	Node *nodeptr_y = list_y->head;
 	Node *pathptr = path->head;
 	int valid = TRUE;
 	int check = FALSE;
 	int i = 0;
-	while (nodeptr != NULL && pathptr != NULL && i<list_y->size) {
-		printf("Checking %s vs %s\n", nodeptr->label, pathptr->label);
-		if (nodeptr->id == pathptr->id) {
+	while (nodeptr_y != NULL && pathptr != NULL && i<list_y->size) {
+		//printf("Checking %s vs %s\n", nodeptr_x->label, pathptr->label);
+		if (nodeptr_x->id == pathptr->id) {
 			check = TRUE;
 		}
 		else {
 			check = FALSE;
 		}
-		if (nodeptr->next == NULL) {
+		if (nodeptr_x == list_x->tail) {
 			printf("CHECK: %d\n", check);
 			if (check == TRUE) {
 				valid = FALSE;
@@ -316,14 +391,16 @@ int check_path(List *list_x, List *list_y, List *path, Edge *ptr) {
 			else {
 				printf("%d ", i);
 				i++;
-				nodeptr = list_x->next_list;
+				nodeptr_y = nodeptr_y->next;
+				nodeptr_x = nodeptr_y;
 				check = FALSE;
 				continue;
 			}
 		}
-		nodeptr = nodeptr->next;
+		nodeptr_x = nodeptr_x->next;
 		pathptr = pathptr->next;
 	}
 	printf("VALID: %d\n", valid);
 	return valid;
 }
+*/
