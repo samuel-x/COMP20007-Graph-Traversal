@@ -87,7 +87,7 @@ void list_add_end(List *list, int data, int distance, int visited, char* label) 
 	node->distance = distance;
 	node->label = malloc(sizeof(label));
 	strcpy(node->label, label);
-	label[sizeof(label)+1] = '\0';
+	//label[sizeof(label)+1] = '\0';
 	node->next = NULL; // as the last node, there's no next node
 
 	if(list->size == 0) {
@@ -106,6 +106,46 @@ void list_add_end(List *list, int data, int distance, int visited, char* label) 
 	// and keep size updated too
 	list->size++;
 }
+
+// remove and return the final data element in a list
+// this operation is O(n), where n is the number of elements in the list
+// error if the list is empty (so first ensure list_size() > 0)
+int list_remove_end(List *list) {
+	assert(list != NULL);
+	assert(list->size > 0);
+	
+	// we'll need to save the data to return it
+	Node *end_node = list->tail;
+	int id = end_node->id;
+	
+	// then replace the tail with the second-last node (may be null)
+	// (to find this replacement, we'll need to walk the list --- the O(n) bit
+	Node *node = list->head;
+	Node *prev = NULL;
+	while (node->next) {
+		prev = node;
+		node = node->next;
+	}
+	list->tail = prev;
+	
+	if(list->size == 1) {
+		// if we're removing the last node, the head also needs clearing
+		list->head = NULL;
+	} else {
+		// otherwise, the second-last node needs to drop the removed last node
+		prev->next = NULL;
+	}
+
+	// the list just got one element shorter
+	list->size--;
+
+	// we're finished with the list node holding this data
+	free_node(end_node);
+
+	// done!
+	return id;
+}
+
 
 // return the number of elements contained in a list
 int list_size(List *list) {

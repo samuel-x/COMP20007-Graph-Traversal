@@ -43,6 +43,8 @@ void free_list(List *list);
 // this operation is O(1)
 void list_add_end(List *list, int data, int distance, int visited, char* label);
 
+int list_remove_end(List *list);
+
 // return the number of elements contained in a list
 int list_size(List *list);
 

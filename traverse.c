@@ -15,9 +15,12 @@
 int check_list(List *list, Edge *ptr);
 void explore_dfs(Graph* graph, List *list, Edge *ptr, int *added_id, int *branch);
 void explore_bfs(Graph* graph, List *list, Edge *ptr);
-void explore_dfs_all(Graph* graph, List *list_x, List *list_y, List *path, Edge *ptr, int *added_id, int *branch);
+void explore_dfs_all(Graph *graph, List *list, Vertex *current_pos, int destination_id);
+void explore_dfs_shortest(Graph *graph, List *list, List *shortest_path, Vertex *current_pos, int destination_id, int *shortest);
+void print_oneline(List *list, int distance);
 void print_list(List *list, int detail);
 int check_path(List **list, List *path, Edge *ptr, int size);
+int calculate_dist(List *list);
 
 //PART 1
 void print_dfs(Graph* graph, int source_id) {
@@ -171,58 +174,34 @@ void detailed_path(Graph* graph, int source_id, int destination_id) {
 
 // PART 4
 void all_paths(Graph* graph, int source_id, int destination_id) {
-	int limit = graph->n;
-	List **list;
-	int size = 0;
-	int i = 0;
 	List *path = new_list();
-
-
+	// Using a recursive version of DFS.
 	Vertex *current_pos = graph->vertices[source_id];
-	Edge *ptr = current_pos->first_edge;
-	int exit_flag = 0;
-	int branch = 0;
-	int added_id = NO_ID;
-	Node *nodeptr = list[size]->head;
-	while(exit_flag != TRUE) {
-		while (ptr != NULL) {
-			if (check_path(list, path, ptr, size) == TRUE) {
-				if (added_id != NO_ID) {
-					branch = 0;
-				}
-				printf("%s is valid\n", graph->vertices[ptr->v]->label);
-				list_add_end(path, ptr->v, ptr->weight, FALSE, graph->vertices[ptr->v]->label);
-				added_id = ptr->v;
-			}
-			else {
-				ptr=ptr->next_edge;
-			}
-		}
-		if (added_id == NO_ID) {
-			nodeptr = list[size]->head;
-			for (i = 0; i<(list[size]->size - branch)-1; i++) {
-				nodeptr = nodeptr->next;
-			}
-			added_id = nodeptr->id;
-			branch = 0;
-		}	
-		// Move pointer to next vertex.
-		current_pos = graph->vertices[added_id];
-		ptr = current_pos->first_edge;
-		
-		nodeptr = nodeptr->next;
-		added_id = NO_ID;
-		branch++;
-		
-		// If the same amount of villages as in the graph have been travelled to, then exit successfully.
-		if (list[size]->size >= limit || branch >= limit) {
-			exit_flag = TRUE;
-		}
-		print_list(list[size], FALSE);
-	}
-
+	explore_dfs_all(graph, path, current_pos, destination_id);
 }
 
+void explore_dfs_all(Graph *graph, List *list, Vertex *current_pos, int destination_id) {
+	Edge *ptr = current_pos->first_edge;
+	list_add_end(list, ptr->u, ptr->weight, TRUE, graph->vertices[ptr->u]->label);
+	//printf("%s\n", current_pos->label);
+	//If we've reached the FINAL DESTINATION
+	if (current_pos->first_edge->u == destination_id) {
+		//printf("printing...\n");
+		print_oneline(list, FALSE);	
+	}
+	else {
+		// if not at the FINAL DESTINATION,
+		// Go down all the connected Edges
+		while (ptr != NULL) {
+			if (check_list(list, ptr) == TRUE){
+				explore_dfs_all(graph, list, graph->vertices[ptr->v], destination_id);
+			}
+			ptr = ptr->next_edge;
+		}
+	}
+	list_remove_end(list);
+}
+/*
 int check_path(List **list, List *path, Edge *ptr, int size){
 	int i;
 	int valid = 1;
@@ -239,6 +218,20 @@ int check_path(List **list, List *path, Edge *ptr, int size){
 		}
 	}
 	return valid;
+}
+*/
+void print_oneline(List *list, int distance) {
+	Node *nodeptr = list->head;
+	while (nodeptr->next != NULL) {
+		printf("%s, ", nodeptr->label);
+		nodeptr = nodeptr->next;
+	}
+	if (distance > 0) {
+		printf("%s (%dkm)\n", nodeptr->label, distance);
+	}
+	else {
+		printf("%s\n", nodeptr->label);
+	}
 }
 
 /*
@@ -331,7 +324,55 @@ void explore_dfs_all(Graph* graph, List *list_x, List *list_y, List *path, Edge 
 }
 */
 void shortest_path(Graph* graph, int source_id, int destination_id) {
-	printf("not yet implemented: put code for part 5 here\n");
+	List *path = new_list();
+	List *shortest_path = new_list();
+	int shortest = 999;
+	// Using a recursive version of DFS.
+	Vertex *current_pos = graph->vertices[source_id];
+	explore_dfs_shortest(graph, path, shortest_path, current_pos, destination_id, &shortest);
+	print_oneline(shortest_path, shortest);	
+}
+
+void explore_dfs_shortest(Graph *graph, List *list, List *shortest_path, Vertex *current_pos, int destination_id, int *shortest) {
+	Edge *ptr = current_pos->first_edge;
+	list_add_end(list, ptr->u, ptr->weight, TRUE, graph->vertices[ptr->u]->label);
+	Node *nodeptr = list->head;
+	//printf("%s\n", current_pos->label);
+	//If we've reached the FINAL DESTINATION
+	if (current_pos->first_edge->u == destination_id) {
+		//printf("printing...\n");
+		if (*shortest > calculate_dist(list)) {
+			free(shortest_path);
+			List *shortest_path = new_list();
+			//printf("Distance: %d\n", *shortest);
+			*shortest = calculate_dist(list);
+			while (nodeptr != NULL) {
+				list_add_end(shortest_path, nodeptr->id, nodeptr->distance, TRUE, nodeptr->label);
+				nodeptr = nodeptr->next;
+			}
+		}
+	}
+	else {
+		// if not at the FINAL DESTINATION,
+		// Go down all the connected Edges
+		while (ptr != NULL) {
+			if (check_list(list, ptr) == TRUE){
+				explore_dfs_shortest(graph, list, shortest_path, graph->vertices[ptr->v], destination_id, shortest);
+			}
+			ptr = ptr->next_edge;
+		}
+	}
+	list_remove_end(list);
+}
+
+int calculate_dist(List *list) {
+	int dist_sum = 0;
+	Node *nodeptr = list->head;
+	while (nodeptr != NULL) {
+		dist_sum += nodeptr->distance;
+		nodeptr = nodeptr->next;
+	}
+	return dist_sum;
 }
 
 void print_list(List *list, int detail){
