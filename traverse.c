@@ -1,4 +1,55 @@
-/* ... */
+// Design of Algorithms Assignment 1
+// by Samuel Xu
+// Date Finished (ver 2.0) | 24/03/17
+/*
+This program has several functions involving the traversal of a 
+non-directional, singular graph.
+These functions include,
+	1. Traversal using Depth First Search
+	2. Traversal using Breadth First Search
+	3. Traversal using Depth First Search (and recording the 
+			cumulative distance of each node)
+	4. Finding all possible path between two Vertexes (via recursive DFS)
+	5. Finding the shortest possible path between two Vertexes (via recursive DFS)
+*/
+/*
+"Style" Guide to self 2.1 (to keep things consistent):
+-	Operations with variables should have spaces in between.
+	This is to prevent issues with pointer operations and the divisor operator
+	becoming a comment.
+	E.g.
+		int *i=0;
+		vs
+		int *i = *foo / *fishsticks; <-- to prevent this becoming a comment
+
+-	If a bracket goes past 80 characters, newline where appropriate and tab
+	the arguments so that it matches up to the bracket / previous argument.
+
+-	All functions should open with { on the same line, and terminate with } 
+	in the sametab index.
+
+-	Control structures should have a space between the name and bracket.
+
+-	Function arguments should be separated by 1 space.
+
+-	Typedef should be declared in the same way that functions are declared
+	(i.e. starting bracket on the same line and ending bracket with a newline)
+
+-	Conditions with && and || must be seperated by a space. In for loops, put
+	a space between each semicolon. 
+
+-	Comparisons should have no spaces in between operators, unless in the case
+	of very long (~10+ characters) conditions for the sake of structs.
+
+-	When using malloc or realloc, make sure the multiplicative factor goes 
+	before sizeof or whatever is used to determine the size. This is to prevent
+	accidental pointer dereferencing.
+
+-	Declare ints first, then float, then char, then other structs / data types.
+
+-	Character limit is at 100
+*/
+
 
 #include <stdio.h>
 #include <string.h>
@@ -6,17 +57,18 @@
 
 #include "traverse.h"
 #include "list.h"
-//typedef struct node Node;
+
 #define FALSE 0
 #define TRUE 1
 #define NO_ID -1
-//typedef struct list List;
+#define INT_MAX 99999
 
 int check_list(List *list, Edge *ptr);
 void explore_dfs(Graph* graph, List *list, Edge *ptr, int *added_id, int *branch);
 void explore_bfs(Graph* graph, List *list, Edge *ptr);
 void explore_dfs_all(Graph *graph, List *list, Vertex *current_pos, int destination_id);
-void explore_dfs_shortest(Graph *graph, List *list, List *shortest_path, Vertex *current_pos, int destination_id, int *shortest);
+void explore_dfs_shortest(Graph *graph, List *list, List *shortest_path, Vertex *current_pos, 
+							int destination_id, int *shortest, int prev_weight);
 void print_oneline(List *list, int distance);
 void print_list(List *list, int detail);
 int check_path(List **list, List *path, Edge *ptr, int size);
@@ -25,14 +77,14 @@ int calculate_dist(List *list);
 //PART 1
 void print_dfs(Graph* graph, int source_id) {
 	int limit = graph->n;
-	// Create a new list to store towns travelled to
-	List *list = new_list();
-	Vertex *current_pos = graph->vertices[source_id];
-	Edge *ptr = current_pos->first_edge;
 	int exit_flag = 0;
 	int added_id = NO_ID;
 	int branch = 0;
 	int i;
+	// Create a new list to store towns travelled to
+	List *list = new_list();
+	Vertex *current_pos = graph->vertices[source_id];
+	Edge *ptr = current_pos->first_edge;
 	Node *nodeptr;
 
 	// Add the first village to list (source location)
@@ -41,13 +93,13 @@ void print_dfs(Graph* graph, int source_id) {
 
 	// While graph has not fully been traversed, explore until it has
 	while (exit_flag != TRUE) {
-		// Explore function which checks which path to follow. If no path is found (as in all edges have been travelled to,
-		// make added_id NO_ID)
+		// Explore function which checks which path to follow. If no path is found 
+		// (as in all edges have been travelled to, make added_id NO_ID)
 		explore_dfs(graph, list, ptr, &added_id, &branch);
 		// If no path was found, then backtrack until new path is found.
 		if (added_id == NO_ID) {
 			nodeptr = list->head;
-			for (i = 0; i<(list->size - branch)-1; i++) {
+			for (i = 0; i<((list->size-branch)-1); i++) {
 				nodeptr = nodeptr->next;
 			}
 			added_id = nodeptr->id;
@@ -61,8 +113,9 @@ void print_dfs(Graph* graph, int source_id) {
 		added_id = NO_ID;
 		branch++;
 		
-		// If the same amount of villages as in the graph have been travelled to, then exit successfully.
-		if (list->size >= limit || branch >= limit) {
+		// If the same amount of villages as in the graph have been travelled to, 
+		// then exit successfully.
+		if (list->size>=limit || branch>=limit) {
 			exit_flag = TRUE;
 		}
 	}
@@ -70,12 +123,14 @@ void print_dfs(Graph* graph, int source_id) {
 	print_list(list, FALSE);
 }
 
+// Helper function for DFS (non-recursive).
 void explore_dfs(Graph* graph, List *list, Edge *ptr, int *added_id, int *branch) {
 	// check all edges
 	while (ptr != NULL) {
 		// if the edge is in the list,
 		if (check_list(list, ptr) == TRUE) {
-			// check if there is currently already a vertex found, if so, then reset the backtrack counter
+			// check if there is currently already a vertex found, if so, then reset the 
+			// backtrack counter
 			// (meaning you can revert to this vertex if you end up at a dead end)
 			if (*added_id != NO_ID) {
 				*branch = 0;
@@ -95,10 +150,10 @@ void explore_dfs(Graph* graph, List *list, Edge *ptr, int *added_id, int *branch
 // PART 2
 void print_bfs(Graph* graph, int source_id) {
 	int limit = graph->maxn;
+	int exit_flag = 0;
 	List *list = new_list();
 	Vertex *current_pos = graph->vertices[source_id];
 	Edge *ptr = current_pos->first_edge;
-	int exit_flag = 0;
 	Node *nodeptr;
 	list_add_end(list, ptr->u, FALSE, TRUE, graph->vertices[ptr->u]->label);
 	nodeptr = list->head;	
@@ -136,13 +191,13 @@ void explore_bfs(Graph* graph, List *list, Edge *ptr) {
 // PART 3
 void detailed_path(Graph* graph, int source_id, int destination_id) {
 	int limit = graph->n;
-	List *list = new_list();
 	int size = 0;
-	Vertex *current_pos = graph->vertices[source_id];
-	Edge *ptr = current_pos->first_edge;
 	int exit_flag = 0;
 	int added_id = NO_ID;
 	int branch = 0, i = 0;
+	List *list = new_list();
+	Vertex *current_pos = graph->vertices[source_id];
+	Edge *ptr = current_pos->first_edge;
 	Node *nodeptr;
 
 
@@ -201,25 +256,7 @@ void explore_dfs_all(Graph *graph, List *list, Vertex *current_pos, int destinat
 	}
 	list_remove_end(list);
 }
-/*
-int check_path(List **list, List *path, Edge *ptr, int size){
-	int i;
-	int valid = 1;
-	for (i = 0; i<size; i++){
-		Node *nodeptr = list[i]->head;
-		Node *pathptr = path->head;
-		while(nodeptr != list[i]->tail) {
-			if (nodeptr->id == pathptr->id) {
-				valid = 0;
-			}
-		}
-		if (valid == 0) {
-			break;
-		}
-	}
-	return valid;
-}
-*/
+
 void print_oneline(List *list, int distance) {
 	Node *nodeptr = list->head;
 	while (nodeptr->next != NULL) {
@@ -234,118 +271,32 @@ void print_oneline(List *list, int distance) {
 	}
 }
 
-/*
-	int limit = graph->n;
-	List *list_x = new_list();
-	List *list_y = new_list();
-	List *path = new_list();
-	int size = 0;
-	Vertex *current_pos = graph->vertices[source_id];
-	Edge *ptr = current_pos->first_edge;
-	int exit_flag = 0;
-	int added_id = NO_ID;
-	int branch = 0, i = 0;
-	Node *nodeptr;
-	Node *pathptr;
-
-
-	list_add_end(path, ptr->u, FALSE, TRUE, graph->vertices[ptr->u]->label);
-	list_x->head = path->head;
-	list_y->head = path->head;
-
-	pathptr = path->head;
-	nodeptr = list_x->head;
-
-	while (exit_flag != TRUE) {
-		//printf("currently at: %s\n", current_pos->label);
-		explore_dfs_all(graph, list_x, list_y, path, ptr, &added_id, &branch);
-		if (added_id == NO_ID) {
-			pathptr = path->head;
-			for (i = 0; i<(path->size - branch)-1; i++) {
-				pathptr = pathptr->next;
-			}
-			added_id = pathptr->id;
-			branch = 0;
-		}
-		if (added_id == destination_id) {
-			print_list(path, FALSE);
-			printf("\n");
-			current_pos = graph->vertices[source_id];
-			ptr = current_pos->first_edge;
-			path = new_list();
-			//list_add_end(path, ptr->u, FALSE, TRUE, graph->vertices[ptr->u]->label);
-			list_add_end(list_y, ptr->u, FALSE, TRUE, graph->vertices[ptr->u]->label);
-			path->head = list_y->tail;
-			list_x->next_list = list_y->tail;
-			pathptr = path->head;
-			//printf("%s", pathptr->label);
-			branch = 0;
-			added_id = NO_ID;
-			continue;
-		}
-		if (pathptr == NULL) {
-			exit_flag = TRUE;
-			break;
-		}
-		//printf("%s", current_pos->label);
-		current_pos = graph->vertices[added_id];
-		ptr = current_pos->first_edge;
-		branch++;
-		pathptr = pathptr->next;
-		added_id = NO_ID;
-	}
-	//print_list(list, TRUE);
-	//free_list(list);
-}
-*/
-/*
-
-void explore_dfs_all(Graph* graph, List *list_x, List *list_y, List *path, Edge *ptr, int *added_id, int *branch) {
-	// check all edges
-	while (ptr != NULL) {
-		// if the edge is in the list,
-		if (check_path(list_x, list_y, path, ptr) == TRUE && check_list(path, ptr) == TRUE) {
-			// check if there is currently already a vertex found, if so, then reset the backtrack counter
-			// (meaning you can revert to this vertex if you end up at a dead end)
-			if (*added_id != NO_ID) {
-				*branch = 0;
-				break;
-			}
-			printf("Adding %s\n", graph->vertices[ptr->v]->label);
-			// Add vertex to list if not currently in list
-			list_add_end(path, ptr->v, ptr->weight, FALSE, graph->vertices[ptr->v]->label);
-			*added_id = ptr->v;
-		}
-		else {
-			// If edge is in the list, then just go to the next edge.
-			ptr = ptr->next_edge;
-		}
-	}
-}
-*/
+// PART 5
 void shortest_path(Graph* graph, int source_id, int destination_id) {
+	int shortest = INT_MAX;
 	List *path = new_list();
 	List *shortest_path = new_list();
-	int shortest = 999;
 	// Using a recursive version of DFS.
 	Vertex *current_pos = graph->vertices[source_id];
-	explore_dfs_shortest(graph, path, shortest_path, current_pos, destination_id, &shortest);
+	explore_dfs_shortest(graph, path, shortest_path, current_pos, destination_id, &shortest, FALSE);
 	print_oneline(shortest_path, shortest);	
 }
 
-void explore_dfs_shortest(Graph *graph, List *list, List *shortest_path, Vertex *current_pos, int destination_id, int *shortest) {
+void explore_dfs_shortest(Graph *graph, List *list, List *shortest_path, Vertex *current_pos, 
+							int destination_id, int *shortest, int prev_weight) {
 	Edge *ptr = current_pos->first_edge;
-	list_add_end(list, ptr->u, ptr->weight, TRUE, graph->vertices[ptr->u]->label);
+	list_add_end(list, ptr->u, prev_weight, TRUE, graph->vertices[ptr->u]->label);
 	Node *nodeptr = list->head;
 	//printf("%s\n", current_pos->label);
 	//If we've reached the FINAL DESTINATION
+	int current_dist = calculate_dist(list);
 	if (current_pos->first_edge->u == destination_id) {
 		//printf("printing...\n");
-		if (*shortest > calculate_dist(list)) {
+		if (*shortest > current_dist) {
 			free(shortest_path);
 			List *shortest_path = new_list();
+			*shortest = current_dist;
 			//printf("Distance: %d\n", *shortest);
-			*shortest = calculate_dist(list);
 			while (nodeptr != NULL) {
 				list_add_end(shortest_path, nodeptr->id, nodeptr->distance, TRUE, nodeptr->label);
 				nodeptr = nodeptr->next;
@@ -357,7 +308,8 @@ void explore_dfs_shortest(Graph *graph, List *list, List *shortest_path, Vertex 
 		// Go down all the connected Edges
 		while (ptr != NULL) {
 			if (check_list(list, ptr) == TRUE){
-				explore_dfs_shortest(graph, list, shortest_path, graph->vertices[ptr->v], destination_id, shortest);
+				explore_dfs_shortest(graph, list, shortest_path, graph->vertices[ptr->v], 
+										destination_id, shortest, ptr->weight);
 			}
 			ptr = ptr->next_edge;
 		}
@@ -407,41 +359,5 @@ int check_list(List *list, Edge *ptr) {
 	}
 	return TRUE;
 }
-/*
-int check_path(List *list_x, List *list_y, List *path, Edge *ptr) {
-	Node *nodeptr_x = list_x->head;
-	Node *nodeptr_y = list_y->head;
-	Node *pathptr = path->head;
-	int valid = TRUE;
-	int check = FALSE;
-	int i = 0;
-	while (nodeptr_y != NULL && pathptr != NULL && i<list_y->size) {
-		//printf("Checking %s vs %s\n", nodeptr_x->label, pathptr->label);
-		if (nodeptr_x->id == pathptr->id) {
-			check = TRUE;
-		}
-		else {
-			check = FALSE;
-		}
-		if (nodeptr_x == list_x->tail) {
-			printf("CHECK: %d\n", check);
-			if (check == TRUE) {
-				valid = FALSE;
-				break;
-			}	
-			else {
-				printf("%d ", i);
-				i++;
-				nodeptr_y = nodeptr_y->next;
-				nodeptr_x = nodeptr_y;
-				check = FALSE;
-				continue;
-			}
-		}
-		nodeptr_x = nodeptr_x->next;
-		pathptr = pathptr->next;
-	}
-	printf("VALID: %d\n", valid);
-	return valid;
-}
-*/
+
+/* Algorithms are Fun! */

@@ -6,7 +6,7 @@
 #
 
 CC     = gcc
-CFLAGS = -Wall -g
+CFLAGS = -Wall
 EXE    = a1
 OBJ    = main.o traverse.o graph.o list.o stack.o queue.o
 #									add any new files here ^
